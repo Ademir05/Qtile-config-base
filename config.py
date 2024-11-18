@@ -2,7 +2,7 @@ import os
 import subprocess
 
 import psutil
-from keys import keys
+from keys import first_keys, create_key
 
 from libqtile import hook
 
@@ -19,7 +19,7 @@ terminal = guess_terminal()
 colorBarra = "#1b004b"
 tamañoBarra = 30
 
-fuentePredeterminada = "ProFont IIx Nerd Font"
+fuentePredeterminada = "Hack Nerd Font"
 tamañoFuente = 12
 
 grupoTamañoIcon = 22
@@ -55,6 +55,11 @@ colorGrupoInfoFont3 = "#614051"
 colorGrupoInfo4 = "#fe4e74"
 colorGrupoInfoFont4 = "#9d98cd"
 
+def get_adjusted_temperature(sensor):
+    raw_temp = psutil.sensors_temperatures().get(sensor, [])[0].current
+    # Ajuste si es necesario, por ejemplo:
+    return raw_temp
+
 def separador(tamañoPadding):
     return widget.Sep(
                     linewidth = 0,
@@ -80,11 +85,35 @@ def grupoInfo(icon, color_grupo, color_font):
                     background = color_grupo
                 )
 
+
+def tiene_bateria():
+    battery = psutil.sensors_battery()
+    return battery is not None
+
+def obtener_widgets_bateria():
+    if tiene_bateria():
+        return [
+            circle(0, colorGrupoInfo0),
+            widget.BatteryIcon(
+                background=colorGrupoInfo0,
+                scale=1.2,
+            ),
+            widget.Battery(
+                background=colorGrupoInfo0,
+                foreground=colorGrupoInfoFont0,
+                format='{percent:2.0%}',
+                update_interval=1,
+            ),
+            circle(1, colorGrupoInfo0),
+        ]
+    return []
+
+
 # Add key bindings to switch VTs in Wayland.
 # We can't check qtile.core.name in default config as it is loaded before qtile is started
 # We therefore defer the check until the key binding is run by using .when(func=...)
 for vt in range(1, 8):
-    keys.append(
+    first_keys.append(
         Key(
             ["control", "mod1"],
             f"f{vt}",
@@ -100,7 +129,7 @@ groups = [Group(i) for i in [
 
 for i, group in enumerate(groups):
     numeroEscrito =str(i+1)
-    keys.extend(
+    first_keys.extend(
         [
             # mod + group number = switch to group
             Key(
@@ -171,18 +200,7 @@ screens = [
                 ),
                 separador(10),
                 #GRUPO INFO 0
-                circle(0, colorGrupoInfo0),
-                widget.BatteryIcon(
-                    background = colorGrupoInfo0,
-                    scale= 1.2,
-                ),
-                widget.Battery(
-                    background = colorGrupoInfo0,
-                    foreground = colorGrupoInfoFont0,
-                    format='{percent:2.0%}',
-                    update_interval= 1,
-                ),
-                circle(1, colorGrupoInfo0),
+                *obtener_widgets_bateria(),
 
                 #GRUPO INFO 1
                 circle(0, colorGrupoInfo1),
@@ -255,7 +273,7 @@ screens = [
             background=colorBarra,
             opacity = 0.85,
         ),
-    ),
+    )
 ]
 
 # Drag floating layouts.
@@ -305,6 +323,15 @@ wl_xcursor_size = 24
 #
 # We choose LG3D to maximize irony: it is a 3D non-reparenting WM written in
 # java that happens to be on java's whitelist.
+
+
+
+#CREANDO KEYS DE TIPO SPAWN
+create_key("b", command="brave")
+create_key("Return", command="kitty")
+create_key("m", command="rofi -show drun")
+
+keys = first_keys
 wmname = "LG3D"
 @hook.subscribe.startup_once
 def autostart():

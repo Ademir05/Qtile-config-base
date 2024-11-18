@@ -1,18 +1,8 @@
-import os
-import subprocess
-
-from libqtile.config import Click, Drag, Group, Key, Match, Screen
+from libqtile.config import Key
 from libqtile.lazy import lazy
 
 mod = "mod4"
-keys = []
-
-
-
-keys = [
-    # A list of available commands that can be bound to keys can be found
-    # at https://docs.qtile.org/en/latest/manual/config/lazy.html
-
+first_keys = [
     # Switch between windows
     Key([mod], "Left", lazy.layout.left(), desc="Move focus to left"),
     Key([mod], "Right", lazy.layout.right(), desc="Move focus to right"),
@@ -43,11 +33,6 @@ keys = [
         desc="Toggle between split and unsplit sides of stack",
     ),
     
-    Key([mod], "Return", lazy.spawn("kitty"), desc="Launch terminal"),
-
-    #Teclas para lanzar menu rofi 
-    Key([mod], "m", lazy.spawn("rofi -show drun"), desc="Abrir menu"),
-
     # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "w", lazy.window.kill(), desc="Kill focused window"),
@@ -73,8 +58,11 @@ keys = [
     #[KEYS-ESPECIALES.CAPTURAS-PANTALLA]
     Key([mod], "s", lazy.spawn("scrot")),
     Key([mod, "shift"], "s", lazy.spawn("scrot -s")),
-    #[KEYS-ESPECIALES.PROGRAMS]
-    Key([mod], "b", lazy.spawn("brave")),
-
-
 ]
+
+def create_key(key, complement=None, command=None):
+    if complement:
+        new_key = Key([mod, complement], key, lazy.spawn(command))
+    else:
+        new_key = Key([mod], key, lazy.spawn(command))
+    first_keys.append(new_key)
