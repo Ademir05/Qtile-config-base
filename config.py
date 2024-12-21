@@ -11,6 +11,9 @@ from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
+# OBTENER LA RUTA ABSOLUTA DE LA CARPETA ACTUAL
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 mod = "mod4"
 terminal = guess_terminal()
 
@@ -273,6 +276,8 @@ screens = [
             background=colorBarra,
             opacity = 0.85,
         ),
+        wallpaper=os.path.join(current_dir, "wallpapers/wallpaper4.png"),
+        wallpaper_mode="fill"
     )
 ]
 
