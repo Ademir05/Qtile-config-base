@@ -20,17 +20,17 @@ terminal = guess_terminal()
 # Colors
 
 colorBarra = "#1b004b"
-tamañoBarra = 30
+tamañoBarra = 20
 
-fuentePredeterminada = "Hack Nerd Font"
+fuentePredeterminada = "Iosevka Nerd Font"
 tamañoFuente = 12
 
-grupoTamañoIcon = 22
+grupoTamañoIcon = 20
 grupoTamañoFuente = 20
 grupoForeGround = "#f988ff"
 
-grupoColorActivo = "#bc4ed8"
-grupoColorInactivo = "#4c007d"
+grupoColorActivo = "#FFC300"
+grupoColorInactivo = "c0c0c0"
 
 grupoThisCurrentScreenBorder = "#7f00b2"
 grupoThisScreenBorder = "#cd581f"
@@ -60,7 +60,6 @@ colorGrupoInfoFont4 = "#9d98cd"
 
 def get_adjusted_temperature(sensor):
     raw_temp = psutil.sensors_temperatures().get(sensor, [])[0].current
-    # Ajuste si es necesario, por ejemplo:
     return raw_temp
 
 def separador(tamañoPadding):
@@ -73,8 +72,8 @@ def separador(tamañoPadding):
 
 def circle(setType, color):
     return widget.TextBox(
-                    text = ("" if (setType==0) else ""),
-                    fontsize = grupoTamañoFuente + 3,
+                    text = ("" if (setType==0) else ""),
+                    fontsize = tamañoBarra,
                     foreground = color,
                     background = colorBarra,
                     padding = -1
@@ -125,38 +124,49 @@ for vt in range(1, 8):
         )
     )
 
+# Asignacion manual de grupos
 
-groups = [Group(i) for i in [
-        "", "󰒍", "", "󰎆", " "
-    ]]
+# groups = [Group(i) for i in [
+#         "󰮯", "󰒍", "", "󰎆"
+#     ]]
+
+
+# Asignacion de grupos en base a un número
+_cantidadGrupos = 4
+_numeroGrupos = min(_cantidadGrupos, 10)
+_groupsIconActive = "󰮯"
+_groupsIconInactive = "●"
+
+groups = [Group(str(i+1), label=_groupsIconActive) for i in range(_numeroGrupos)]
 
 for i, group in enumerate(groups):
-    numeroEscrito =str(i+1)
-    first_keys.extend(
-        [
-            # mod + group number = switch to group
-            Key(
-                [mod],
-                numeroEscrito,
-                lazy.group[group.name].toscreen(),
-                desc=f"Switch to group {group.name}",
-            ),
-            # mod + shift + group number = switch to & move focused window to group
-            Key(
-                [mod, "shift"],
-                numeroEscrito,
-                lazy.window.togroup(group.name, switch_group=True),
-                desc=f"Switch to & move focused window to group {group.name}",
-            ),
-            # Or, use below if you prefer not to switch to that group.
-            # # mod + shift + group number = move focused window to group
-            # Key([mod, "shift"], i.name, lazy.window.togroup(i.name),
-            #     desc="move focused window to group {}".format(i.name)),
-        ]
-    )
+    numeroEscrito = str(i + 1) if i < 9 else "0"  # Asigna '0' para el grupo 10
+
+    first_keys.extend([
+        # mod + group number = switch to group
+        Key(
+            [mod],
+            numeroEscrito,
+            lazy.group[group.name].toscreen(),
+            desc=f"Cambiar al grupo {group.name}"),
+        
+        # mod + shift + group number = switch to & move focused window to group
+        Key(
+            [mod, "shift"],
+            numeroEscrito,
+            lazy.window.togroup(group.name, switch_group=True),
+            desc=f"Mover ventana y cambiar al grupo {group.name}"),
+    ])
+
+@hook.subscribe.group_window_add
+def group_window_add(group, window):
+    print(group, window)
+    for itemGroup in groups:
+        if itemGroup == group:
+            itemGroup.label = _groupsIconInactive
 
 layouts = [
-    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2, margin=18),
+    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=1, margin=10),
     layout.Max(),
     layout.TreeTab(),
 ]
@@ -274,9 +284,12 @@ screens = [
             ],
             tamañoBarra,
             background=colorBarra,
-            opacity = 0.85,
+            margin = 5,
+            opacity = 0.50,
+            border_width = 5,
+            border_color = "#9d5353"  
         ),
-        wallpaper=os.path.join(current_dir, "wallpapers/wallpaper4.png"),
+        wallpaper=os.path.join(current_dir, "wallpapers/wallpaper3.png"),
         wallpaper_mode="fill"
     )
 ]
