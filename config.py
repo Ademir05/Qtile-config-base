@@ -19,25 +19,33 @@ terminal = guess_terminal()
 
 # Colors
 
-colorBarra = "#1b004b"
-tamañoBarra = 20
+_colorDarkGray = "#5d5b6a"
+_colorGray = "#758184"
+_colorCream = "#f5cdaa"
+_colorDarkCream = "#cfb495"
+_colorYellowPacman = "#FFC300"
+_colorLightBlue = "a1efff"
+
+colorBarra = _colorDarkGray
+colorBordeBarra = _colorGray
+tamañoBarra = 30
 
 fuentePredeterminada = "Iosevka Nerd Font"
-tamañoFuente = 12
+tamañoFuente = 14
 
-grupoTamañoIcon = 20
-grupoTamañoFuente = 20
+grupoTamañoIcon = 25
+grupoTamañoFuente = 25
 grupoForeGround = "#f988ff"
 
-grupoColorActivo = "#FFC300"
-grupoColorInactivo = "c0c0c0"
+grupoColorActivo = _colorYellowPacman
+grupoColorInactivo = _colorLightBlue
 
-grupoThisCurrentScreenBorder = "#7f00b2"
+grupoThisCurrentScreenBorder = _colorGray
 grupoThisScreenBorder = "#cd581f"
 grupoUrgentBorderColor = "#1f8fcd"
 
-windowNameForeground = "#bd93f9"
-windowNameBackground = "#1b004b"
+windowNameForeground = _colorCream
+windowNameBackground = _colorDarkGray
 
 colorHaveUpdates = "#bc0000"
 dispositivoRed1 = "eno1"
@@ -46,17 +54,29 @@ dispositivoRed2 = "wlan0"
 colorGrupoInfo0 = "#81638b"
 colorGrupoInfoFont0 = "#ffffff"
 
-colorGrupoInfo1 = "#69dde4"
-colorGrupoInfoFont1 = "#327847"
+colorGrupoInfo1 = _colorCream
+colorGrupoInfoFont1 = _colorGray
 
-colorGrupoInfo2 = "#f26dc9"
-colorGrupoInfoFont2 = "#e0b0ff"
+colorGrupoInfo2 = _colorDarkCream
+colorGrupoInfoFont2 = _colorGray
 
-colorGrupoInfo3 = "#e0b0ff"
-colorGrupoInfoFont3 = "#614051"
+colorGrupoInfo3 = _colorCream
+colorGrupoInfoFont3 = _colorGray
 
-colorGrupoInfo4 = "#fe4e74"
-colorGrupoInfoFont4 = "#9d98cd"
+colorGrupoInfo4 = _colorDarkCream
+colorGrupoInfoFont4 = _colorGray
+
+# colorGrupoInfo1 = "#69dde4"
+# colorGrupoInfoFont1 = "#327847"
+
+# colorGrupoInfo2 = "#f26dc9"
+# colorGrupoInfoFont2 = "#e0b0ff"
+
+# colorGrupoInfo3 = "#e0b0ff"
+# colorGrupoInfoFont3 = "#614051"
+
+# colorGrupoInfo4 = "#fe4e74"
+# colorGrupoInfoFont4 = "#9d98cd"
 
 def get_adjusted_temperature(sensor):
     raw_temp = psutil.sensors_temperatures().get(sensor, [])[0].current
@@ -135,9 +155,9 @@ for vt in range(1, 8):
 _cantidadGrupos = 4
 _numeroGrupos = min(_cantidadGrupos, 10)
 _groupsIconActive = "󰮯"
-_groupsIconInactive = "●"
+_groupsIconInactive = "󰊠"
 
-groups = [Group(str(i+1), label=_groupsIconActive) for i in range(_numeroGrupos)]
+groups = [Group(str(i+1), label=_groupsIconInactive) for i in range(_numeroGrupos)]
 
 for i, group in enumerate(groups):
     numeroEscrito = str(i + 1) if i < 9 else "0"  # Asigna '0' para el grupo 10
@@ -158,15 +178,25 @@ for i, group in enumerate(groups):
             desc=f"Mover ventana y cambiar al grupo {group.name}"),
     ])
 
-@hook.subscribe.group_window_add
-def group_window_add(group, window):
-    print(group, window)
-    for itemGroup in groups:
-        if itemGroup == group:
-            itemGroup.label = _groupsIconInactive
+def actualizar_labels():
+    """Actualiza los labels de los grupos según si tienen ventanas activas o no."""
+    for group in qtile.groups:
+        if group.windows:
+            group.label = _groupsIconActive
+        else:
+            group.label = _groupsIconInactive
+    qtile.widgets_map["groupbox"].bar.draw()  # Redibujar la barra para ver los cambios
+
+# Cambio de icono activo/inactivo
+@hook.subscribe.setgroup
+@hook.subscribe.client_new
+@hook.subscribe.client_killed
+@hook.subscribe.client_managed
+def actualizar_labels_hook(*args, **kwargs):
+    actualizar_labels()
 
 layouts = [
-    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=1, margin=10),
+    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=0, margin=5),
     layout.Max(),
     layout.TreeTab(),
 ]
@@ -183,16 +213,15 @@ screens = [
         top=bar.Bar(
             [
                 widget.GroupBox(
-                    active = grupoColorActivo,
                     fontsize = grupoTamañoIcon,
                     disable_drag = True,
-                    border_width = 1,
-                    foreground = grupoForeGround,
+                    border_width = 0,
                     highlight_method = 'block',
+                    active = grupoColorActivo,
                     inactive = grupoColorInactivo,
-                    margin_x = 0,
-                    margin_y = 5,
-                    padding_x = 15,
+                    # margin_x = 5,
+                    # margin_y = 5,
+                    padding_x = 10,
                     padding_y = 10,
                     other_current_screen_border = grupoThisScreenBorder,
                     other_screen_border = grupoThisCurrentScreenBorder,
@@ -285,9 +314,9 @@ screens = [
             tamañoBarra,
             background=colorBarra,
             margin = 5,
-            opacity = 0.50,
+            opacity = 1,
             border_width = 5,
-            border_color = "#9d5353"  
+            border_color = colorBordeBarra  
         ),
         wallpaper=os.path.join(current_dir, "wallpapers/wallpaper3.png"),
         wallpaper_mode="fill"
@@ -354,4 +383,4 @@ wmname = "LG3D"
 @hook.subscribe.startup_once
 def autostart():
     script = os.path.expanduser("~/.config/qtile/autostart.sh")
-    subprocess.run([script]) 
+    subprocess.run([script])
